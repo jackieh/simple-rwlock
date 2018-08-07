@@ -1,3 +1,8 @@
+# My stuff
+./libsimple_rwlock.a
+./simple_rwlock_test
+notes/*
+
 # Prerequisites
 *.d
 
