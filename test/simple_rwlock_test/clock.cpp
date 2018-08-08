@@ -32,7 +32,7 @@ namespace simple_rwlock_test {
     std::string Clock::latency_to_string(clk_latency_t latency) {
         std::stringstream repr_stream;
         repr_stream.precision(10);
-        repr_stream << latency;
+        repr_stream << latency << " microseconds";
         return repr_stream.str();
     }
 

@@ -19,12 +19,12 @@ namespace simple_rwlock_test {
         Test &operator=(const Test &other);
         virtual ~Test();
         std::string get_name() const;
-        int run_test();
+        int run_test(Clock::clk_latency_t &test_latency);
 
     protected:
         virtual int run_test_body() = 0;
         void begin_test();
-        void end_test();
+        void end_test(Clock::clk_latency_t &test_latency);
 
         std::string test_name_;
         Clock &tester_clock_;

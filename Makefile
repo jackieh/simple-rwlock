@@ -18,7 +18,7 @@ CXX = g++ -std=c++17 -Wall -Wextra
 	$(CXX) $(BUILD_FLAGS) -o $@ -c $<
 
 LIB_OUT = libsimple_rwlock.a
-TEST_OUT = simple_rwlock_test
+TEST_OUT = simple_rwlock_run_tests
 
 LIB_SRC = $(SRC_DIR)/simple_rwlock_debug_helpers.cpp \
 		  $(SRC_DIR)/simple_rwlock.cpp
@@ -35,7 +35,7 @@ TEST_SRC = $(TEST_DIR)/main.cpp \
 		   $(TEST_CLASS_DIR)/tests/two_thread_tests.cpp \
 		   $(TEST_CLASS_DIR)/tester.cpp
 TEST_OBJ = $(TEST_SRC:.cpp=.o)
-$(TEST_OBJ): BUILD_FLAGS := -I $(SRC_DIR) -I $(TEST_DIR) -g
+$(TEST_OBJ): BUILD_FLAGS := -I $(SRC_DIR) -I $(TEST_DIR) $(DEBUG_FLAGS)
 $(TEST_OUT): LINK_FLAGS := -L$(TOP_DIR) -lsimple_rwlock -pthread
 $(TEST_OUT): $(LIB_OUT) $(TEST_OBJ)
 	$(CXX) -o $@ $(TEST_OBJ) $(LINK_FLAGS)

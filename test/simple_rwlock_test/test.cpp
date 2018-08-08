@@ -31,10 +31,10 @@ namespace simple_rwlock_test {
         return test_name_;
     }
 
-    int Test::run_test() {
+    int Test::run_test(Clock::clk_latency_t &test_latency) {
         begin_test();
         int result = run_test_body();
-        end_test();
+        end_test(test_latency);
         return result;
     }
 
@@ -44,22 +44,26 @@ namespace simple_rwlock_test {
             tester_clock_.latency_to_checkpoint();
         std::cout << "Begin " << std::quoted(test_name_)
             << " test at " << Clock::latency_to_string(start_time)
-            << " microseconds from start of testing" << std::endl;
+            << " from start of testing" << std::endl;
+#ifdef DEBUG
         std::cout << "---" << std::endl;
+#endif
     }
 
-    void Test::end_test() {
+    void Test::end_test(Clock::clk_latency_t &test_latency) {
         // Report how long the test took to run.
         tester_clock_.update_checkpoint();
         Clock::clk_latency_t end_time =
             tester_clock_.latency_to_checkpoint();
         Clock::clk_latency_t test_time =
             tester_clock_.latency_between_checkpoints();
+        test_latency = test_time;
+#ifdef DEBUG
         std::cout << "---" << std::endl;
+#endif
         std::cout << "End " << std::quoted(test_name_)
             << " test at " << Clock::latency_to_string(end_time)
-            << " microseconds from start ("
-            << Clock::latency_to_string(test_time)
-            << " microseconds from beginning of test)" << std::endl;
+            << " from start (" << Clock::latency_to_string(test_time)
+            << " from beginning of test)" << std::endl;
     }
 }

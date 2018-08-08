@@ -35,8 +35,10 @@ namespace simple_rwlock_test {
         void rlock(rwlock_t *rwlock, unsigned int *data, bool *rlock_pass) {
             rwlock_init(rwlock);
             rwlock_lock_rd(rwlock);
+#ifdef DEBUG
             std::cout << "(Thread " << std::this_thread::get_id()
                 << ")\trlock: data is 0x" << std::hex << *data << std::endl;
+#endif
             *rlock_pass &= (*data == 0xdeadbeef);
             rwlock_unlock_rd(rwlock);
             rwlock_uninit(rwlock);
@@ -61,8 +63,10 @@ namespace simple_rwlock_test {
         void wlock(rwlock_t *rwlock, unsigned int *data, bool *wlock_pass) {
             rwlock_init(rwlock);
             rwlock_lock_wr(rwlock);
+#ifdef DEBUG
             std::cout << "(Thread " << std::this_thread::get_id()
                 << ")\twlock: data is 0x" << std::hex << *data << std::endl;
+#endif
             *wlock_pass &= (*data == 0xdeadbeef);
             *data = 0xfeedcafe;
             *wlock_pass &= (*data == 0xfeedcafe);
@@ -91,13 +95,17 @@ namespace simple_rwlock_test {
         void rw(rwlock_t *rwlock, unsigned int *data, bool *rw_pass) {
             rwlock_init(rwlock);
             rwlock_lock_rd(rwlock);
+#ifdef DEBUG
             std::cout << "(Thread " << std::this_thread::get_id()
                 << ")\trw: data is 0x" << std::hex << *data << std::endl;
+#endif
             *rw_pass &= (*data == 0xdeadbeef);
             rwlock_unlock_rd(rwlock);
             rwlock_lock_wr(rwlock);
+#ifdef DEBUG
             std::cout << "(Thread " << std::this_thread::get_id()
                 << ")\trw: data is 0x" << std::hex << *data << std::endl;
+#endif
             *rw_pass &= (*data == 0xdeadbeef);
             *data = 0xfeedcafe;
             *rw_pass &= (*data == 0xfeedcafe);
@@ -126,15 +134,19 @@ namespace simple_rwlock_test {
         void wr(rwlock_t *rwlock, unsigned int *data, bool *wr_pass) {
             rwlock_init(rwlock);
             rwlock_lock_wr(rwlock);
+#ifdef DEBUG
             std::cout << "(Thread " << std::this_thread::get_id()
                 << ")\twr: data is 0x" << std::hex << *data << std::endl;
+#endif
             *wr_pass &= (*data == 0xdeadbeef);
             *data = 0xfeedcafe;
             *wr_pass &= (*data == 0xfeedcafe);
             rwlock_unlock_wr(rwlock);
             rwlock_lock_rd(rwlock);
+#ifdef DEBUG
             std::cout << "(Thread " << std::this_thread::get_id()
                 << ")\twr: data is 0x" << std::hex << *data << std::endl;
+#endif
             *wr_pass &= (*data == 0xfeedcafe);
             rwlock_unlock_rd(rwlock);
             rwlock_uninit(rwlock);

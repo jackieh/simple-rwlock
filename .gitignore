@@ -1,6 +1,6 @@
 # My stuff
-./libsimple_rwlock.a
-./simple_rwlock_test
+libsimple_rwlock.a
+simple_rwlock_run_tests
 notes/*
 
 # Prerequisites
