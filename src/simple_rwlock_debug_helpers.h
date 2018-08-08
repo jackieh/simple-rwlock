@@ -13,15 +13,24 @@
 namespace simple_rwlock {
     static std::mutex log_mutex;
 
+#define ASSERT_ZERO(cv) assert(cv == 0)
 #define ASSERT_POSITIVE(cv) assert(cv > 0)
 #define ASSERT_LOCKED(m) assert(!m->try_lock())
+#define ASSERT_UNLOCKED(m) assert_unlocked(m)
 #define PRINT_CALLED(fn) print_called(fn)
 #define PRINT_AWNUM(fn, rwl, co) \
     print_counter(fn, "active writers", co, rwl->num_active_writers)
 #define PRINT_ARNUM(fn, rwl, co) \
     print_counter(fn, "active readers", co, rwl->num_active_readers)
 #define PRINT_AAWLOCK(fn, mu) print_mutex(fn, mu, "active writers")
-#define PRINT_WLOCK(fn, mu) print_mutex(fn, mu, "write")
+#define PRINT_WOARLOCK(fn, mu) print_mutex(fn, mu, "write or any read")
+
+    // Assert a mutex is unlocked by trying the lock.
+    // After the assertion passes, release the lock.
+    inline void assert_unlocked(std::mutex *m) {
+        assert(m->try_lock());
+        m->unlock();
+    }
 
     // Report a function call.
     inline void print_called(std::string func_name) {
