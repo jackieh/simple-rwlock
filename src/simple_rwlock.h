@@ -13,16 +13,16 @@ namespace simple_rwlock {
 
     typedef struct rwlock_t {
         // At any given time, at most one writer may have write access.
-        std::mutex write_mutex;
+        std::mutex *write_mutex;
         // At any given time, more than one writer may be active.
         // A writer is active when it is either writing or waiting to write.
         rwlock_count_t num_active_writers;
-        std::mutex num_active_writers_mutex;
-        std::mutex any_active_writers_mutex;
+        std::mutex *num_active_writers_mutex;
+        std::mutex *any_active_writers_mutex;
         // At any given time, more than one reader may be active.
         // A reader is active when it has permission to read.
         rwlock_count_t num_active_readers;
-        std::mutex num_active_readers_mutex;
+        std::mutex *num_active_readers_mutex;
     } rwlock_t;
 
     void rwlock_init(rwlock_t *);

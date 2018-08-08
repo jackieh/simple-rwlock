@@ -26,6 +26,7 @@ namespace simple_rwlock_test {
         tests_.push_back(new TestSingleThreadWriteRead(tester_clock_));
         tests_.push_back(new TestTwoThreadReadOnceEach(tester_clock_));
         tests_.push_back(new TestTwoThreadReadWaitForOtherRead(tester_clock_));
+        tests_.push_back(new TestTwoThreadReadWaitForOtherWrite(tester_clock_));
     }
 
     Tester::~Tester() {
@@ -57,9 +58,10 @@ namespace simple_rwlock_test {
             }
         }
         std::cout << std::endl;
-        if (failure_messages.size() > 0) {
-            std::cout << failure_messages.size()
-                << " failed tests:" << std::endl;
+        size_t num_failed = failure_messages.size();
+        if (num_failed > 0) {
+            std::cout << num_failed << " failed "
+                << ((num_failed == 1) ? "test" : "tests") << ":" << std::endl;
             for (const auto &message : failure_messages) {
                 std::cout << "\t" << message << std::endl;
             }

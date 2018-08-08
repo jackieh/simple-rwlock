@@ -20,13 +20,18 @@ namespace simple_rwlock {
         PRINT_CALLED("rwlock_init");
         rwlock->num_active_readers = 0;
         rwlock->num_active_writers = 0;
+        rwlock->write_mutex = new std::mutex;
+        rwlock->num_active_writers_mutex = new std::mutex;
+        rwlock->any_active_writers_mutex = new std::mutex;
+        rwlock->num_active_readers_mutex = new std::mutex;
     }
 
     void rwlock_uninit(rwlock_t *rwlock) {
         PRINT_CALLED("rwlock_uninit");
-        rwlock->write_mutex.unlock();
-        rwlock->num_active_readers_mutex.unlock();
-        rwlock->num_active_writers_mutex.unlock();
+        delete rwlock->write_mutex;
+        delete rwlock->num_active_writers_mutex;
+        delete rwlock->any_active_writers_mutex;
+        delete rwlock->num_active_readers_mutex;
     }
 
     // In order to read, the following must be the case:
@@ -44,24 +49,24 @@ namespace simple_rwlock {
     void rwlock_lock_rd(rwlock_t *rwlock) {
         PRINT_CALLED("rwlock_lock_rd");
         PRINT_AAWLOCK("rwlock_lock_rd", "Acquiring");
-        rwlock->any_active_writers_mutex.lock();
+        rwlock->any_active_writers_mutex->lock();
         PRINT_AAWLOCK("rwlock_lock_rd", "Locked");
-        rwlock->num_active_readers_mutex.lock();
+        rwlock->num_active_readers_mutex->lock();
         rwlock->num_active_readers++;
         PRINT_ARNUM("rwlock_lock_rd", rwlock, "incremented");
-        rwlock->num_active_readers_mutex.unlock();
+        rwlock->num_active_readers_mutex->unlock();
         PRINT_AAWLOCK("rwlock_lock_rd", "Releasing");
-        rwlock->any_active_writers_mutex.unlock();
+        rwlock->any_active_writers_mutex->unlock();
     }
 
     // Atomically decrement the number of active readers.
     void rwlock_unlock_rd(rwlock_t *rwlock) {
         PRINT_CALLED("rwlock_unlock_rd");
-        rwlock->num_active_readers_mutex.lock();
+        rwlock->num_active_readers_mutex->lock();
         ASSERT_POSITIVE(rwlock->num_active_readers);
         rwlock->num_active_readers--;
         PRINT_ARNUM("rwlock_unlock_rd", rwlock, "decremented");
-        rwlock->num_active_readers_mutex.unlock();
+        rwlock->num_active_readers_mutex->unlock();
     }
 
     // In order to wait to write, the following must be the case:
@@ -92,18 +97,18 @@ namespace simple_rwlock {
     //   actual write lock.
     void rwlock_lock_wr(rwlock_t *rwlock) {
         PRINT_CALLED("rwlock_lock_wr");
-        rwlock->num_active_writers_mutex.lock();
+        rwlock->num_active_writers_mutex->lock();
         if (rwlock->num_active_writers == 0) {
             PRINT_AAWLOCK("rwlock_lock_wr", "Acquiring");
-            rwlock->any_active_writers_mutex.lock();
+            rwlock->any_active_writers_mutex->lock();
             PRINT_AAWLOCK("rwlock_lock_wr", "Locked");
         }
         ASSERT_LOCKED(rwlock->any_active_writers_mutex);
         rwlock->num_active_writers++;
         PRINT_AWNUM("rwlock_lock_wr", rwlock, "incremented");
-        rwlock->num_active_writers_mutex.unlock();
+        rwlock->num_active_writers_mutex->unlock();
         PRINT_WLOCK("rwlock_lock_wr", "Acquiring");
-        rwlock->write_mutex.lock();
+        rwlock->write_mutex->lock();
         PRINT_WLOCK("rwlock_lock_wr", "Locked");
     }
 
@@ -113,16 +118,16 @@ namespace simple_rwlock {
     // the counter is zero.
     void rwlock_unlock_wr(rwlock_t *rwlock) {
         PRINT_CALLED("rwlock_unlock_wr");
-        rwlock->write_mutex.unlock();
-        rwlock->num_active_writers_mutex.lock();
+        rwlock->write_mutex->unlock();
+        rwlock->num_active_writers_mutex->lock();
         ASSERT_POSITIVE(rwlock->num_active_writers);
         rwlock->num_active_writers--;
         PRINT_AWNUM("rwlock_unlock_wr", rwlock, "decremented");
         if (rwlock->num_active_writers == 0) {
             PRINT_AAWLOCK("rwlock_unlock_wr", "Releasing");
-            rwlock->any_active_writers_mutex.unlock();
+            rwlock->any_active_writers_mutex->unlock();
         }
         PRINT_AAWLOCK("rwlock_unlock_wr", "Releasing");
-        rwlock->num_active_writers_mutex.unlock();
+        rwlock->num_active_writers_mutex->unlock();
     }
 }

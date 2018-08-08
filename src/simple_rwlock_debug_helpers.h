@@ -14,7 +14,7 @@ namespace simple_rwlock {
     static std::mutex log_mutex;
 
 #define ASSERT_POSITIVE(cv) assert(cv > 0)
-#define ASSERT_LOCKED(m) assert(!m.try_lock())
+#define ASSERT_LOCKED(m) assert(!m->try_lock())
 #define PRINT_CALLED(fn) print_called(fn)
 #define PRINT_AWNUM(fn, rwl, co) \
     print_counter(fn, "active writers", co, rwl->num_active_writers)

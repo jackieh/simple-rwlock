@@ -17,4 +17,13 @@ namespace simple_rwlock_test {
         TestTwoThreadReadWaitForOtherRead(Clock &tester_clock);
         int run_test_body();
     };
+
+    // test_two_thread_wait_for_other_write: Have two threads, each
+    // which repeatedly writes to shared data until the other
+    // thread reports having written to the shared data at least once.
+    class TestTwoThreadReadWaitForOtherWrite : public Test {
+    public:
+        TestTwoThreadReadWaitForOtherWrite(Clock &tester_clock);
+        int run_test_body();
+    };
 }
