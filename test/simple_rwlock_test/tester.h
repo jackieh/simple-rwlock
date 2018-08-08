@@ -1,6 +1,8 @@
 #ifndef SRWLT_TESTER_H
 #define SRWLT_TESTER_H
 
+#include <vector>
+
 #include <simple_rwlock_test/clock.h>
 #include <simple_rwlock_test/test.h>
 

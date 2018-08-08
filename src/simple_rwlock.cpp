@@ -1,86 +1,29 @@
-#ifdef DEBUG
-#include <assert.h>
-#include <iostream>
-#include <string>
-#endif
-
 #include <mutex>
 
 #include <simple_rwlock.h>
 
-namespace simple_rwlock {
 #ifdef DEBUG
-#define ASSERT_POSITIVE(cv) assert(cv > 0)
-#define ASSERT_LOCKED(m) assert(!m.try_lock())
-
-    static std::mutex log_mutex;
-
-    inline void print_func(std::string func_name, rwlock_t *rwlock) {
-        std::cout << func_name << " (" << (void *)rwlock << "): ";
-    }
-
-    // Report a function call.
-    inline void print_called(std::string func_name, rwlock_t *rwlock) {
-        std::lock_guard<std::mutex> lock(log_mutex);
-        print_func(func_name, rwlock);
-        std::cout << "Called" << std::endl;
-        std::cout.flush();
-    }
-
-#define PRINT_CALLED(fn, rwl) print_called(fn, rwl)
-
-    // Report a counter update.
-    inline void print_counter(std::string func_name, rwlock_t *rwlock,
-                              std::string counter_name,
-                              std::string counter_operation,
-                              unsigned long counter_value)
-    {
-        std::lock_guard<std::mutex> lock(log_mutex);
-        print_func(func_name, rwlock);
-        std::cout << "Number of " << counter_name << " "
-            << counter_operation << " to " << counter_value << std::endl;
-        std::cout.flush();
-    }
-
-#define PRINT_AWNUM(fn, rwl, co) \
-    print_counter(fn, rwl, "active writers", co, rwl->num_active_writers)
-#define PRINT_ARNUM(fn, rwl, co) \
-    print_counter(fn, rwl, "active readers", co, rwl->num_active_readers)
-
-    // Report a mutex update.
-    inline void print_mutex(std::string func_name, rwlock_t *rwlock,
-                            std::string mutex_update,
-                            std::string mutex_name)
-    {
-        std::lock_guard<std::mutex> lock(log_mutex);
-        print_func(func_name, rwlock);
-        std::cout << mutex_update << " " << mutex_name
-            << " mutex" << std::endl;
-        std::cout.flush();
-    }
-
-#define PRINT_AAWLOCK(fn, rwl, mu) print_mutex(fn, rwl, mu, "active writers")
-#define PRINT_WLOCK(fn, rwl, mu) print_mutex(fn, rwl, mu, "write")
-
+#include <simple_rwlock_debug_helpers.h>
 #else // DEBUG
-// Effectively erase any of these macro calls if not testing/debugging.
+// Effectively erase any of these macro calls if not debugging.
 #define ASSERT_POSITIVE(cv)
 #define ASSERT_LOCKED(m)
-#define PRINT_CALLED(fn, rwl)
+#define PRINT_CALLED(fn)
 #define PRINT_AWNUM(fn, rwl, co)
 #define PRINT_ARNUM(fn, rwl, co)
-#define PRINT_AAWLOCK(fn, rwl, mu)
-#define PRINT_WLOCK(fn, rwl, mu)
+#define PRINT_AAWLOCK(fn, mu)
+#define PRINT_WLOCK(fn, mu)
 #endif // DEBUG
 
+namespace simple_rwlock {
     void rwlock_init(rwlock_t *rwlock) {
-        PRINT_CALLED("rwlock_init", rwlock);
+        PRINT_CALLED("rwlock_init");
         rwlock->num_active_readers = 0;
         rwlock->num_active_writers = 0;
     }
 
     void rwlock_uninit(rwlock_t *rwlock) {
-        PRINT_CALLED("rwlock_uninit", rwlock);
+        PRINT_CALLED("rwlock_uninit");
         rwlock->write_mutex.unlock();
         rwlock->num_active_readers_mutex.unlock();
         rwlock->num_active_writers_mutex.unlock();
@@ -99,19 +42,21 @@ namespace simple_rwlock {
     // - Release any_active_writers lock to allow any
     //   writers to start waiting to write.
     void rwlock_lock_rd(rwlock_t *rwlock) {
-        PRINT_CALLED("rwlock_lock_rd", rwlock);
-        PRINT_AAWLOCK("rwlock_lock_rd", rwlock, "Acquiring");
+        PRINT_CALLED("rwlock_lock_rd");
+        PRINT_AAWLOCK("rwlock_lock_rd", "Acquiring");
         rwlock->any_active_writers_mutex.lock();
+        PRINT_AAWLOCK("rwlock_lock_rd", "Locked");
         rwlock->num_active_readers_mutex.lock();
         rwlock->num_active_readers++;
         PRINT_ARNUM("rwlock_lock_rd", rwlock, "incremented");
         rwlock->num_active_readers_mutex.unlock();
+        PRINT_AAWLOCK("rwlock_lock_rd", "Releasing");
         rwlock->any_active_writers_mutex.unlock();
     }
 
     // Atomically decrement the number of active readers.
     void rwlock_unlock_rd(rwlock_t *rwlock) {
-        PRINT_CALLED("rwlock_unlock_rd", rwlock);
+        PRINT_CALLED("rwlock_unlock_rd");
         rwlock->num_active_readers_mutex.lock();
         ASSERT_POSITIVE(rwlock->num_active_readers);
         rwlock->num_active_readers--;
@@ -146,20 +91,20 @@ namespace simple_rwlock {
     //   counter so other writers can start waiting, then wait for the
     //   actual write lock.
     void rwlock_lock_wr(rwlock_t *rwlock) {
-        PRINT_CALLED("rwlock_lock_wr", rwlock);
+        PRINT_CALLED("rwlock_lock_wr");
         rwlock->num_active_writers_mutex.lock();
         if (rwlock->num_active_writers == 0) {
-            PRINT_AAWLOCK("rwlock_lock_wr", rwlock, "Acquiring");
+            PRINT_AAWLOCK("rwlock_lock_wr", "Acquiring");
             rwlock->any_active_writers_mutex.lock();
-            PRINT_AAWLOCK("rwlock_lock_wr", rwlock, "Locked");
+            PRINT_AAWLOCK("rwlock_lock_wr", "Locked");
         }
         ASSERT_LOCKED(rwlock->any_active_writers_mutex);
         rwlock->num_active_writers++;
         PRINT_AWNUM("rwlock_lock_wr", rwlock, "incremented");
         rwlock->num_active_writers_mutex.unlock();
-        PRINT_WLOCK("rwlock_lock_wr", rwlock, "Acquiring");
+        PRINT_WLOCK("rwlock_lock_wr", "Acquiring");
         rwlock->write_mutex.lock();
-        PRINT_WLOCK("rwlock_lock_wr", rwlock, "Locked");
+        PRINT_WLOCK("rwlock_lock_wr", "Locked");
     }
 
     // Atomically decrement the number of writers counter. Before
@@ -167,17 +112,17 @@ namespace simple_rwlock {
     // the any_active_writers lock if and only if the new value of
     // the counter is zero.
     void rwlock_unlock_wr(rwlock_t *rwlock) {
-        PRINT_CALLED("rwlock_unlock_wr", rwlock);
+        PRINT_CALLED("rwlock_unlock_wr");
         rwlock->write_mutex.unlock();
         rwlock->num_active_writers_mutex.lock();
         ASSERT_POSITIVE(rwlock->num_active_writers);
         rwlock->num_active_writers--;
         PRINT_AWNUM("rwlock_unlock_wr", rwlock, "decremented");
         if (rwlock->num_active_writers == 0) {
-            PRINT_AAWLOCK("rwlock_unlock_wr", rwlock, "Releasing");
+            PRINT_AAWLOCK("rwlock_unlock_wr", "Releasing");
             rwlock->any_active_writers_mutex.unlock();
         }
-        PRINT_AAWLOCK("rwlock_unlock_wr", rwlock, "Releasing");
+        PRINT_AAWLOCK("rwlock_unlock_wr", "Releasing");
         rwlock->num_active_writers_mutex.unlock();
     }
 }

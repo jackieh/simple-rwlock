@@ -1,8 +1,10 @@
 #include <iostream>
+#include <vector>
 
 #include <simple_rwlock_test/clock.h>
 #include <simple_rwlock_test/test.h>
 #include <simple_rwlock_test/tests/single_thread_tests.h>
+#include <simple_rwlock_test/tests/two_thread_tests.h>
 #include <simple_rwlock_test/tester.h>
 
 namespace simple_rwlock_test {
@@ -15,12 +17,13 @@ namespace simple_rwlock_test {
             << Clock::latency_to_string(start_time)
             << " microseconds from start" << std::endl;
 
-        tests_.push_back(new TestSingleThreadInit(
-                "Single thread init/uninit", tester_clock_));
-        tests_.push_back(new TestSingleThreadRead(
-                "Single thread read", tester_clock_));
-        tests_.push_back(new TestSingleThreadWrite(
-                "Single thread write", tester_clock_));
+        tests_.push_back(new TestSingleThreadInit(tester_clock_));
+        tests_.push_back(new TestSingleThreadRead(tester_clock_));
+        tests_.push_back(new TestSingleThreadWrite(tester_clock_));
+        tests_.push_back(new TestSingleThreadReadWrite(tester_clock_));
+        tests_.push_back(new TestSingleThreadWriteRead(tester_clock_));
+        tests_.push_back(new TestTwoThreadReadOnceEach(tester_clock_));
+        tests_.push_back(new TestTwoThreadReadWaitForOtherRead(tester_clock_));
     }
 
     Tester::~Tester() {

@@ -8,6 +8,7 @@ TOP_DIR = .
 SRC_DIR = $(TOP_DIR)/src
 TEST_DIR = $(TOP_DIR)/test
 TEST_CLASS_DIR = $(TEST_DIR)/simple_rwlock_test
+TESTS_DIR = $(TEST_CLASS_DIR)/tests
 
 CXX = g++ -std=c++17 -Wall -Wextra
 
@@ -19,7 +20,8 @@ CXX = g++ -std=c++17 -Wall -Wextra
 LIB_OUT = libsimple_rwlock.a
 TEST_OUT = simple_rwlock_test
 
-LIB_SRC = $(SRC_DIR)/simple_rwlock.cpp
+LIB_SRC = $(SRC_DIR)/simple_rwlock_debug_helpers.cpp \
+		  $(SRC_DIR)/simple_rwlock.cpp
 LIB_OBJ = $(LIB_SRC:.cpp=.o)
 $(LIB_OBJ): BUILD_FLAGS := -I $(SRC_DIR) $(DEBUG_FLAGS)
 $(LIB_OUT): $(LIB_OBJ)
@@ -29,7 +31,8 @@ $(LIB_OUT): $(LIB_OBJ)
 TEST_SRC = $(TEST_DIR)/main.cpp \
 		   $(TEST_CLASS_DIR)/clock.cpp \
 		   $(TEST_CLASS_DIR)/test.cpp \
-		   $(TEST_CLASS_DIR)/tests/*.cpp \
+		   $(TEST_CLASS_DIR)/tests/single_thread_tests.cpp \
+		   $(TEST_CLASS_DIR)/tests/two_thread_tests.cpp \
 		   $(TEST_CLASS_DIR)/tester.cpp
 TEST_OBJ = $(TEST_SRC:.cpp=.o)
 $(TEST_OBJ): BUILD_FLAGS := -I $(SRC_DIR) -I $(TEST_DIR) -g
@@ -47,4 +50,5 @@ clean:
 	rm -f $(TEST_OUT)
 	rm -f $(SRC_DIR)/*.o
 	rm -f $(TEST_DIR)/*.o
-	rm -rf $(TEST_CLASS_DIR)/*.o
+	rm -f $(TEST_CLASS_DIR)/*.o
+	rm -f $(TESTS_DIR)/*.o

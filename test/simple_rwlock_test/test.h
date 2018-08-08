@@ -1,10 +1,7 @@
 #ifndef SRWLT_TEST_H
 #define SRWLT_TEST_H
 
-#include <sstream>
-#include <streambuf>
 #include <string>
-#include <vector>
 
 #include <simple_rwlock.h>
 #include <simple_rwlock_test/clock.h>
@@ -30,8 +27,6 @@ namespace simple_rwlock_test {
         void end_test();
 
         std::string test_name_;
-        std::stringstream *test_body_stream_;
-        std::streambuf *stdout_stream_;
         Clock &tester_clock_;
     };
 }
