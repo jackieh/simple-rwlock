@@ -1,21 +1,7 @@
 #include <mutex>
 
-#include <simple_rwlock.h>
-
-#ifdef DEBUG
 #include <simple_rwlock_debug_helpers.h>
-#else // DEBUG
-// Effectively erase any of these macro calls if not debugging.
-#define ASSERT_ZERO(cv)
-#define ASSERT_POSITIVE(cv)
-#define ASSERT_LOCKED(m)
-#define ASSERT_UNLOCKED(m)
-#define PRINT_CALLED(fn)
-#define PRINT_AWNUM(fn, rwl, co)
-#define PRINT_ARNUM(fn, rwl, co)
-#define PRINT_AAWLOCK(fn, mu)
-#define PRINT_WOARLOCK(fn, mu)
-#endif // DEBUG
+#include <simple_rwlock.h>
 
 namespace simple_rwlock {
     void rwlock_init(rwlock_t *rwlock) {
@@ -81,21 +67,23 @@ namespace simple_rwlock {
     //--------------------------------------------------------------------------
     void rwlock_lock_rd(rwlock_t *rwlock) {
         PRINT_CALLED("rwlock_lock_rd");
-        PRINT_AAWLOCK("rwlock_lock_rd", "Acquiring");
+        PRINT_AAWLOCK("rwlock_lock_rd", "acquiring");
         rwlock->any_active_writers_mutex->lock();
-        PRINT_AAWLOCK("rwlock_lock_rd", "Locked");
+        PRINT_AAWLOCK("rwlock_lock_rd", "locked");
         rwlock->num_active_readers_mutex->lock();
         if (rwlock->num_active_readers == 0) {
-            PRINT_WOARLOCK("rwlock_lock_rd", "Acquiring");
+            PRINT_WOARLOCK("rwlock_lock_rd", "acquiring");
             rwlock->write_or_any_read_mutex->lock();
-            PRINT_WOARLOCK("rwlock_lock_rd", "Locked");
+            PRINT_WOARLOCK("rwlock_lock_rd", "locked");
         }
         ASSERT_LOCKED(rwlock->write_or_any_read_mutex);
         rwlock->num_active_readers++;
         PRINT_ARNUM("rwlock_lock_rd", rwlock, "incremented");
         rwlock->num_active_readers_mutex->unlock();
-        PRINT_AAWLOCK("rwlock_lock_rd", "Releasing");
+        ASSERT_LOCKED(rwlock->any_active_writers_mutex);
+        PRINT_AAWLOCK("rwlock_lock_rd", "releasing");
         rwlock->any_active_writers_mutex->unlock();
+        PRINT_AAWLOCK("rwlock_lock_rd", "released");
     }
 
     //--------------------------------------------------------------------------
@@ -133,7 +121,7 @@ namespace simple_rwlock {
         rwlock->num_active_readers--;
         PRINT_ARNUM("rwlock_unlock_rd", rwlock, "decremented");
         if (rwlock->num_active_readers == 0) {
-            PRINT_WOARLOCK("rwlock_unlock_rd", "Releasing");
+            PRINT_WOARLOCK("rwlock_unlock_rd", "releasing");
             rwlock->write_or_any_read_mutex->unlock();
         }
         rwlock->num_active_readers_mutex->unlock();
@@ -183,17 +171,17 @@ namespace simple_rwlock {
         PRINT_CALLED("rwlock_lock_wr");
         rwlock->num_active_writers_mutex->lock();
         if (rwlock->num_active_writers == 0) {
-            PRINT_AAWLOCK("rwlock_lock_wr", "Acquiring");
+            PRINT_AAWLOCK("rwlock_lock_wr", "acquiring");
             rwlock->any_active_writers_mutex->lock();
-            PRINT_AAWLOCK("rwlock_lock_wr", "Locked");
+            PRINT_AAWLOCK("rwlock_lock_wr", "locked");
         }
         ASSERT_LOCKED(rwlock->any_active_writers_mutex);
         rwlock->num_active_writers++;
         PRINT_AWNUM("rwlock_lock_wr", rwlock, "incremented");
         rwlock->num_active_writers_mutex->unlock();
-        PRINT_WOARLOCK("rwlock_lock_wr", "Acquiring");
+        PRINT_WOARLOCK("rwlock_lock_wr", "acquiring");
         rwlock->write_or_any_read_mutex->lock();
-        PRINT_WOARLOCK("rwlock_lock_wr", "Locked");
+        PRINT_WOARLOCK("rwlock_lock_wr", "locked");
         ASSERT_ZERO(rwlock->num_active_readers);
     }
 
@@ -239,11 +227,12 @@ namespace simple_rwlock {
         ASSERT_POSITIVE(rwlock->num_active_writers);
         rwlock->num_active_writers--;
         PRINT_AWNUM("rwlock_unlock_wr", rwlock, "decremented");
+        ASSERT_LOCKED(rwlock->any_active_writers_mutex);
         if (rwlock->num_active_writers == 0) {
-            PRINT_AAWLOCK("rwlock_unlock_wr", "Releasing");
+            PRINT_AAWLOCK("rwlock_unlock_wr", "releasing");
             rwlock->any_active_writers_mutex->unlock();
+            PRINT_AAWLOCK("rwlock_unlock_wr", "released");
         }
-        PRINT_AAWLOCK("rwlock_unlock_wr", "Releasing");
         rwlock->num_active_writers_mutex->unlock();
     }
 }

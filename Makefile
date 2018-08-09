@@ -31,8 +31,10 @@ $(LIB_OUT): $(LIB_OBJ)
 TEST_SRC = $(TEST_DIR)/main.cpp \
 		   $(TEST_CLASS_DIR)/clock.cpp \
 		   $(TEST_CLASS_DIR)/test.cpp \
+		   $(TEST_CLASS_DIR)/tests/test_common.cpp \
 		   $(TEST_CLASS_DIR)/tests/single_thread_tests.cpp \
 		   $(TEST_CLASS_DIR)/tests/two_thread_tests.cpp \
+		   $(TEST_CLASS_DIR)/tests/multi_thread_tests.cpp \
 		   $(TEST_CLASS_DIR)/tester.cpp
 TEST_OBJ = $(TEST_SRC:.cpp=.o)
 $(TEST_OBJ): BUILD_FLAGS := -I $(SRC_DIR) -I $(TEST_DIR) $(DEBUG_FLAGS)

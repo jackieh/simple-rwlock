@@ -7,6 +7,7 @@
 #include <simple_rwlock_test/test.h>
 #include <simple_rwlock_test/tests/single_thread_tests.h>
 #include <simple_rwlock_test/tests/two_thread_tests.h>
+#include <simple_rwlock_test/tests/multi_thread_tests.h>
 #include <simple_rwlock_test/tester.h>
 
 namespace simple_rwlock_test {
@@ -27,6 +28,7 @@ namespace simple_rwlock_test {
         tests_.push_back(new TestTwoThreadReadOnceEach(tester_clock_));
         tests_.push_back(new TestTwoThreadReadWaitForOtherRead(tester_clock_));
         tests_.push_back(new TestTwoThreadReadWaitForOtherWrite(tester_clock_));
+        tests_.push_back(new TestManyReadersOneWriter(tester_clock_));
     }
 
     Tester::~Tester() {

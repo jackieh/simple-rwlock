@@ -1,3 +1,6 @@
+#ifndef SRWLT_TEST_TWO_THREAD_H
+#define SRWLT_TEST_TWO_THREAD_H
+
 #include <simple_rwlock_test/test.h>
 
 namespace simple_rwlock_test {
@@ -27,3 +30,5 @@ namespace simple_rwlock_test {
         int run_test_body();
     };
 }
+
+#endif // SRWLT_TEST_TWO_THREAD_H

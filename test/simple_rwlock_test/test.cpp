@@ -6,9 +6,9 @@
 #include <simple_rwlock_test/clock.h>
 #include <simple_rwlock_test/test.h>
 
-using namespace simple_rwlock;
-
 namespace simple_rwlock_test {
+    using namespace simple_rwlock;
+
     Test::Test(std::string test_name, Clock &tester_clock) :
         test_name_(test_name),
         tester_clock_(tester_clock)

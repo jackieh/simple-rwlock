@@ -6,12 +6,12 @@
 #include <simple_rwlock.h>
 #include <simple_rwlock_test/clock.h>
 
-using namespace simple_rwlock;
-
 // Base class for tests. Each test is stored as an object
 // in the tester. Specific tests are defined as subclasses
 // of this class in the simple_rwlock_test/tests/ directory.
 namespace simple_rwlock_test {
+    using namespace simple_rwlock;
+
     class Test {
     public:
         Test(std::string test_name, Clock &tester_clock);

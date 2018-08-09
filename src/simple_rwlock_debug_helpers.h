@@ -1,6 +1,7 @@
 #ifndef SIMPLE_RWLOCK_DEBUG_HELPERS_H
 #define SIMPLE_RWLOCK_DEBUG_HELPERS_H
 
+#ifdef DEBUG
 #include <assert.h>
 #include <iostream>
 #include <mutex>
@@ -22,7 +23,7 @@ namespace simple_rwlock {
     print_counter(fn, "active writers", co, rwl->num_active_writers)
 #define PRINT_ARNUM(fn, rwl, co) \
     print_counter(fn, "active readers", co, rwl->num_active_readers)
-#define PRINT_AAWLOCK(fn, mu) print_mutex(fn, mu, "active writers")
+#define PRINT_AAWLOCK(fn, mu) print_mutex(fn, mu, "any active writers")
 #define PRINT_WOARLOCK(fn, mu) print_mutex(fn, mu, "write or any read")
 
     // Assert a mutex is unlocked by trying the lock.
@@ -36,7 +37,7 @@ namespace simple_rwlock {
     inline void print_called(std::string func_name) {
         std::stringstream print_stream;
         print_stream << "(Thread " << std::this_thread::get_id() << ")\t"
-            << func_name << ": " << "Called" << std::endl;
+            << func_name << ": " << "called" << std::endl;
 
         { // Critical section: write to stdout.
             log_mutex.lock();
@@ -54,7 +55,7 @@ namespace simple_rwlock {
     {
         std::stringstream print_stream;
         print_stream << "(Thread " << std::this_thread::get_id() << ")\t"
-            << func_name << ": " << "Number of " << counter_name << " "
+            << func_name << ": " << "number of " << counter_name << " "
             << counter_operation << " to " << counter_value << std::endl;
 
         { // Critical section: write to stdout.
@@ -83,5 +84,18 @@ namespace simple_rwlock {
         }
     }
 }
+
+#else // DEBUG
+// Effectively erase any of these macro calls if not debugging.
+#define ASSERT_ZERO(cv)
+#define ASSERT_POSITIVE(cv)
+#define ASSERT_LOCKED(m)
+#define ASSERT_UNLOCKED(m)
+#define PRINT_CALLED(fn)
+#define PRINT_AWNUM(fn, rwl, co)
+#define PRINT_ARNUM(fn, rwl, co)
+#define PRINT_AAWLOCK(fn, mu)
+#define PRINT_WOARLOCK(fn, mu)
+#endif // DEBUG
 
 #endif // SIMPLE_RWLOCK_DEBUG_HELPERS_H

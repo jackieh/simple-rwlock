@@ -1,16 +1,16 @@
-#include <iostream>
 #include <mutex>
-#include <sstream>
 #include <thread>
 
 #include <simple_rwlock.h>
 #include <simple_rwlock_debug_helpers.h>
 #include <simple_rwlock_test/test.h>
+#include <simple_rwlock_test/tests/test_common.h>
 #include <simple_rwlock_test/tests/two_thread_tests.h>
 
-using namespace simple_rwlock;
-
 namespace simple_rwlock_test {
+    using namespace simple_rwlock;
+    using namespace test_common;
+
     // Functions run by threads in the TestTwoThreadReadOnceEach test class.
     namespace test_two_thread_read_once_each {
         // Read once from shared data and confirm it is the correct value.
@@ -18,39 +18,14 @@ namespace simple_rwlock_test {
                     unsigned int *data, // Shared
                     bool *rlock1_pass)  // Not shared
         {
+            TEST_DLOG_THREAD_LAUNCH("rlock1");
             unsigned int data_value = 0;
-
-#ifdef DEBUG
-            std::stringstream print_stream;
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\tLaunched running rlock1" << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
-
             { // Critical section: read from data.
                 rwlock_lock_rd(rwlock);
                 data_value = *data;
                 rwlock_unlock_rd(rwlock);
             }
-
-#ifdef DEBUG
-            print_stream = std::stringstream();
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\trlock1: data is 0x"
-                << std::hex << data_value << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
-
+            TEST_DLOG_VAR_VALUE_HEX("rlock1", "data", data_value);
             *rlock1_pass &= (data_value == 0xdeadbeef);
         }
 
@@ -59,39 +34,14 @@ namespace simple_rwlock_test {
                     unsigned int *data, // Shared
                     bool *rlock2_pass)  // Not shared
         {
+            TEST_DLOG_THREAD_LAUNCH("rlock2");
             unsigned int data_value = 0;
-
-#ifdef DEBUG
-            std::stringstream print_stream;
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\tLaunched running rlock2" << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
-
             { // Critical section: read from data.
                 rwlock_lock_rd(rwlock);
                 data_value = *data;
                 rwlock_unlock_rd(rwlock);
             }
-
-#ifdef DEBUG
-            print_stream = std::stringstream();
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\trlock2: data is 0x"
-                << std::hex << data_value << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
-
+            TEST_DLOG_VAR_VALUE_HEX("rlock2", "data", data_value);
             *rlock2_pass &= (data_value == 0xdeadbeef);
         }
     }
@@ -124,21 +74,9 @@ namespace simple_rwlock_test {
                     bool *rlock1_read,  // Shared
                     bool *rlock2_read)  // Shared
         {
+            TEST_DLOG_THREAD_LAUNCH("rlock1");
             unsigned int data_value = 0;
             bool rlock2_read_value = false;
-
-#ifdef DEBUG
-            std::stringstream print_stream;
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\tLaunched running rlock1" << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
-
             while (!rlock2_read_value) {
                 data_value = 0;
 
@@ -156,19 +94,7 @@ namespace simple_rwlock_test {
                     rwlock_unlock_wr(rwlock);
                 }
 
-#ifdef DEBUG
-                print_stream = std::stringstream();
-                print_stream << "(Thread " << std::this_thread::get_id()
-                    << ")\trlock1: data is 0x"
-                    << std::hex << data_value << std::endl;
-                { // Critical section: write to stdout.
-                    log_mutex.lock();
-                    std::cout << print_stream.str();
-                    std::cout.flush();
-                    log_mutex.unlock();
-                }
-#endif
-
+                TEST_DLOG_VAR_VALUE_HEX("rlock1", "data", data_value);
                 std::this_thread::yield();
             } // End while loop
             data_value = 0;
@@ -179,18 +105,7 @@ namespace simple_rwlock_test {
                 rwlock_unlock_rd(rwlock);
             }
 
-#ifdef DEBUG
-            print_stream = std::stringstream();
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\trlock1: data is still 0x"
-                << std::hex << data_value << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
+            TEST_DLOG_VAR_VALUE_HEX("end of rlock1", "data", data_value);
         }
 
         // Repeatedly read from shared data until rlock1
@@ -201,21 +116,9 @@ namespace simple_rwlock_test {
                     bool *rlock1_read,  // Shared
                     bool *rlock2_read)  // Shared
         {
+            TEST_DLOG_THREAD_LAUNCH("rlock2");
             unsigned int data_value = 0;
             bool rlock1_read_value = false;
-
-#ifdef DEBUG
-            std::stringstream print_stream;
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\tLaunched running rlock2" << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
-
             while (!rlock1_read_value) {
                 data_value = 0;
 
@@ -233,19 +136,7 @@ namespace simple_rwlock_test {
                     rwlock_unlock_wr(rwlock);
                 }
 
-#ifdef DEBUG
-                print_stream = std::stringstream();
-                print_stream << "(Thread " << std::this_thread::get_id()
-                    << ")\trlock2: data is 0x"
-                    << std::hex << data_value << std::endl;
-                { // Critical section: write to stdout.
-                    log_mutex.lock();
-                    std::cout << print_stream.str();
-                    std::cout.flush();
-                    log_mutex.unlock();
-                }
-#endif
-
+                TEST_DLOG_VAR_VALUE_HEX("rlock2", "data", data_value);
                 std::this_thread::yield();
             } // End while loop
             data_value = 0;
@@ -256,18 +147,7 @@ namespace simple_rwlock_test {
                 rwlock_unlock_rd(rwlock);
             }
 
-#ifdef DEBUG
-            print_stream = std::stringstream();
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\trlock2: data is still 0x"
-                << std::hex << data_value << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
+            TEST_DLOG_VAR_VALUE_HEX("end of rlock2", "data", data_value);
         }
     }
     TestTwoThreadReadWaitForOtherRead::TestTwoThreadReadWaitForOtherRead(
@@ -304,20 +184,9 @@ namespace simple_rwlock_test {
                     bool *wlock1_wrote, // Shared
                     bool *wlock2_wrote) // Shared
         {
+            TEST_DLOG_THREAD_LAUNCH("wlock1");
             unsigned int data_value = 0;
             bool wlock2_wrote_value = false;
-
-#ifdef DEBUG
-            std::stringstream print_stream;
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\tLaunched running wlock1" << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
 
             while (!wlock2_wrote_value) {
                 data_value = 0;
@@ -337,18 +206,7 @@ namespace simple_rwlock_test {
                     rwlock_unlock_wr(rwlock);
                 }
 
-#ifdef DEBUG
-                print_stream = std::stringstream();
-                print_stream << "(Thread " << std::this_thread::get_id()
-                    << ")\twlock1: data is 0x" << data_value << std::endl;
-                { // Critical section: write to stdout.
-                    log_mutex.lock();
-                    std::cout << print_stream.str();
-                    std::cout.flush();
-                    log_mutex.unlock();
-                }
-#endif
-
+                TEST_DLOG_VAR_VALUE_HEX("wlock1", "data", data_value);
                 std::this_thread::yield();
             } // End while loop
             data_value = 0;
@@ -359,18 +217,7 @@ namespace simple_rwlock_test {
                 rwlock_unlock_rd(rwlock);
             }
 
-#ifdef DEBUG
-            print_stream = std::stringstream();
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\twlock1: ending with data equal to 0x"
-                << data_value << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
+            TEST_DLOG_VAR_VALUE_HEX("end of wlock1", "data", data_value);
         }
 
         // Repeatedly write to shared data until wlock1
@@ -381,20 +228,9 @@ namespace simple_rwlock_test {
                     bool *wlock1_wrote, // Shared
                     bool *wlock2_wrote) // Shared
         {
+            TEST_DLOG_THREAD_LAUNCH("wlock2");
             unsigned int data_value = 0;
             bool wlock1_wrote_value = false;
-
-#ifdef DEBUG
-            std::stringstream print_stream;
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\tLaunched running wlock2" << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
 
             while (!wlock1_wrote_value) {
                 data_value = 0;
@@ -414,18 +250,7 @@ namespace simple_rwlock_test {
                     rwlock_unlock_wr(rwlock);
                 }
 
-#ifdef DEBUG
-                print_stream = std::stringstream();
-                print_stream << "(Thread " << std::this_thread::get_id()
-                    << ")\twlock2: data is 0x" << data_value << std::endl;
-                { // Critical section: write to stdout.
-                    log_mutex.lock();
-                    std::cout << print_stream.str();
-                    std::cout.flush();
-                    log_mutex.unlock();
-                }
-#endif
-
+                TEST_DLOG_VAR_VALUE_HEX("wlock2", "data", data_value);
                 std::this_thread::yield();
             } // End while loop
             data_value = 0;
@@ -436,18 +261,7 @@ namespace simple_rwlock_test {
                 rwlock_unlock_rd(rwlock);
             }
 
-#ifdef DEBUG
-            print_stream = std::stringstream();
-            print_stream << "(Thread " << std::this_thread::get_id()
-                << ")\twlock2: ending with data equal to 0x"
-                << data_value << std::endl;
-            { // Critical section: write to stdout.
-                log_mutex.lock();
-                std::cout << print_stream.str();
-                std::cout.flush();
-                log_mutex.unlock();
-            }
-#endif
+            TEST_DLOG_VAR_VALUE_HEX("end of wlock2", "data", data_value);
         }
     }
     TestTwoThreadReadWaitForOtherWrite::TestTwoThreadReadWaitForOtherWrite(

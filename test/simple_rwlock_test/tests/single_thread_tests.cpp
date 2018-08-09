@@ -5,11 +5,11 @@
 #include <simple_rwlock_test/test.h>
 #include <simple_rwlock_test/tests/single_thread_tests.h>
 
-using namespace simple_rwlock;
-
 // Have a separate sub-namespace for each test in order to
 // prevent concerns about duplicated function names.
 namespace simple_rwlock_test {
+    using namespace simple_rwlock;
+
     // Function run by the thread in the TestSingleThreadInit test class.
     namespace test_single_thread_init {
         // Initialize the rwlock object and then uninitialize the object.
